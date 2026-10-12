@@ -59,7 +59,7 @@ other developers to review and test changes before merging them into the main br
 
 _Why the program defaults to public:_ a rule that *stops* direct pushes to `main` is GitHub
 [branch protection](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches),
-and whether it is available on a private repo depends on the GitHub plan (the brief and PRD both say so).
+and whether it is available on a private repo depends on the GitHub plan (the brief says so).
 A public repo avoids that dependency. On a private repo without it, "no direct pushes" would be a team
 agreement, not something GitHub enforces. The day-to-day workflow is the same either way.
 
@@ -129,25 +129,36 @@ Open Bruno once to confirm it launches. There is nothing to create yet; it is us
 
 #### 1.3 Install Node 24 through a version manager
 
-The cohort uses **Node.js 24 LTS**. Pick one manager:
+The cohort uses **Node.js 24 LTS**. Pick one manager, install it, then open a new terminal:
 
-| OS | Manager | Notes |
+| Manager | Install | Notes |
 | --- | --- | --- |
-| macOS / Linux | [nvm](https://github.com/nvm-sh/nvm) | Reads `.nvmrc` when you run `nvm use`. |
-| macOS / Linux / Windows | [fnm](https://github.com/Schniz/fnm) | Cross-platform; `fnm use` reads `.nvmrc`. |
-| Windows | [nvm-windows](https://github.com/coreybutler/nvm-windows) | A separate project from nvm. It **does not read `.nvmrc`**, so run `nvm use 24` yourself. |
+| [nvm](https://github.com/nvm-sh/nvm) (macOS/Linux) | its [install script](https://github.com/nvm-sh/nvm#installing-and-updating), which also adds its init lines to your shell profile | Reads `.nvmrc` when you run `nvm use`. |
+| [fnm](https://github.com/Schniz/fnm) (macOS/Linux/Windows) | macOS: `brew install fnm`. Windows: `winget install Schniz.fnm` | Add its init line to your shell profile first (see below); `fnm use` reads `.nvmrc`. |
+| [nvm-windows](https://github.com/coreybutler/nvm-windows) (Windows) | `winget install CoreyButler.NVMforWindows`, or its installer | A separate project from nvm. It **does not read `.nvmrc`**, so run `nvm use 24` yourself. Its README says to run it from an Administrator shell, and an existing separate Node install can conflict with it. |
+
+**fnm shell setup** (once; reload the shell afterwards). Add this line to `~/.zshrc` (zsh), `~/.bashrc`
+(bash) or your PowerShell `$PROFILE`:
 
 ```bash
-nvm install 24          # nvm or nvm-windows
+eval "$(fnm env --use-on-cd --shell zsh)"                          # zsh (use --shell bash for bash)
+fnm env --use-on-cd --shell powershell | Out-String | Invoke-Expression   # PowerShell
+```
+
+Then install and select Node 24:
+
+```bash
+nvm install 24          # nvm, or nvm-windows
 nvm use 24
 # or with fnm:
 fnm install 24
-fnm default 24
+fnm use 24
+fnm default 24          # default for new terminals
 
 node --version          # expect v24.x.x
 ```
 
-Real output from a machine that started on Node 22:
+Real output from a machine that started on Node 22 (nvm on macOS):
 
 ```
 $ node --version
@@ -156,8 +167,13 @@ $ nvm use v24
 Now using node v24.21.0 (npm v11.19.0)
 ```
 
-Switching only affects the current terminal. If a new terminal is back on the old version, set a default
-(`nvm alias default 24` or `fnm default 24`). Downloads: [nodejs.org/en/download](https://nodejs.org/en/download).
+With nvm and fnm, `use` only affects the current terminal. If a new terminal is back on the old version, set a
+default (`nvm alias default 24` or `fnm default 24`). nvm-windows differs: its README documents no `alias` command, and says `nvm use` updates every open window and persists across reboots. Downloads:
+[nodejs.org/en/download](https://nodejs.org/en/download).
+
+> **Untested on Windows and Linux.** The author ran this module on macOS with nvm. The fnm and nvm-windows
+> install and shell-setup steps come from those projects' READMEs, not from a run, so check them against the
+> README if something doesn't match.
 
 #### 1.4 Terminal basics
 
@@ -375,12 +391,13 @@ probably from the earlier `git stash push`, which resets the working tree intern
 
 Goal: five Conventional Commits on a feature branch, never on `main`. Run from the root of your cloned repo.
 
-**PowerShell equivalents** for the commands below (Git Bash needs none):
+**PowerShell equivalents** for the commands below (untested by the author; Git Bash needs none):
 
 | Bash / zsh | PowerShell |
 | --- | --- |
 | `echo "24" > .nvmrc` | `Set-Content -Path .nvmrc -Value "24" -Encoding ascii` (plain `>` writes UTF-16 in 5.1, which version managers can fail to read; or create the file in VS Code) |
 | `touch test.db` | `New-Item test.db -ItemType File` ([docs](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.management/new-item)) |
+| `mkdir node_modules && touch node_modules/x.js` | `mkdir node_modules`, then `New-Item node_modules/x.js -ItemType File` (`&&` isn't available in PowerShell 5.1) |
 | `rm -rf .env node_modules test.db` | `Remove-Item -Recurse -Force .env, node_modules, test.db` ([docs](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.management/remove-item)) |
 | `printf 'PORT=3000\nNODE_ENV=development\n' > .env.example` | create it in VS Code, or `Set-Content .env.example "PORT=3000","NODE_ENV=development"` ([docs](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.management/set-content)) |
 | `nvm use` (reads `.nvmrc`) | nvm-windows: `nvm use 24`. fnm: `fnm use`. |
@@ -543,7 +560,14 @@ git commit -m "docs: describe Node.js training repository"
 ```
 
 The README says what the repo is (the code for the training program) and lists the prerequisites (Node.js
-24 LTS and Git). The `1 deletion` in the commit summary is GitHub's one-line README being replaced.
+24 LTS and Git).
+
+```
+[feat/hello-node 31b3113] docs: describe Node.js training repository
+ 1 file changed, 9 insertions(+), 1 deletion(-)
+```
+
+The `1 deletion` is the one-line README that GitHub generated being replaced.
 
 #### 3.7 Check the branch
 
@@ -674,8 +698,8 @@ Run the script to check it, then finish the merge and update the PR:
 node m01-dev-environment-git-github/hello-node.js    # Hello, Node.js Developer!
 git add m01-dev-environment-git-github/hello-node.js
 git commit -m "chore: resolve greeting merge conflict"
+git log --oneline --graph --all     # output below was captured here, before the push
 git push
-git log --oneline --graph --all
 ```
 
 ```
@@ -909,8 +933,9 @@ Try to answer without looking back, then check the answers.
   in later modules.
 - **Re-running `gh auth login` when already logged in** prints `! You were already logged in to this
   account` and still completes. Harmless, but run `gh auth status` first.
-- **`git restore` can't be undone**, unlike `git reset --hard`, which can be rescued from the reflog. If in
-  doubt, `git stash` first.
+- **`git restore` can't be undone.** An edit that was never staged or committed is gone for good once
+  restored. `git reset --hard` can be rescued from the reflog only for *committed* work; uncommitted changes
+  it wipes are gone too. If in doubt, `git stash` first.
 - **The reflog has entries you didn't type.** `reset: moving to HEAD` appeared before the revert/reset
   exercise; it most likely came from the earlier `git stash push`.
 - **Ignored files vanish from `git status`**, and only `.gitignore` itself showed up. That is correct;
