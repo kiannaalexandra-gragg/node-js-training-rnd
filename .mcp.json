@@ -8,6 +8,15 @@
         "nexus-dev-toolkit-jev[typesafe]",
         "nexus-jev-mcp"
       ]
+    },
+    "nexus": {
+      "command": "uvx",
+      "args": [
+        "--refresh",
+        "--from",
+        "nexus-dev-toolkit",
+        "nexus-mcp"
+      ]
     }
   }
 }
