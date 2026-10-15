@@ -84,5 +84,9 @@ reaches one central handler. `AppError` subclasses set their own status, a `ZodE
 
 - `.gitignore` covers `node_modules`, `.env`, `*.db`, the generated Prisma client, `dist`, and
   `coverage`.
+- Ignore the generated Prisma client as `**/generated/prisma`. The client is generated in
+  `src/generated/prisma/`, and a pattern with a slash in the middle (`generated/prisma`) only
+  matches from the repo root, so it would miss it. Prove an ignore rule with
+  `git check-ignore -v <real path>`, not a file at the repo root.
 - Commit `.env.example`. Never commit `.env` or `.env.test`. Never put a real secret in an example.
 - Conventional Commits for every commit.
