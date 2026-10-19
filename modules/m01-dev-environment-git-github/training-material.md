@@ -62,7 +62,8 @@ this guide.
 ## 3. Guided path
 
 Commands are for macOS or Linux shells. Replace `<user>` with your GitHub username and `<repo-name>`
-with the name you give your repo, for example `node-js-foundation-training`.
+with the name you give your repo, for example `node-js-foundation-training`. The commands keep the
+repo in your home folder, `~/<repo-name>`, so you can return to it from anywhere.
 
 ### Stage 1 — Check the toolchain and terminal basics
 
@@ -83,6 +84,9 @@ gh auth status
 Also confirm Bruno is installed. For any tool that fails, use its guide in section 2, then run the
 check again.
 
+**Important:** on macOS, `code --version` only works after you install the `code` command in your
+PATH. The [VS Code setup guide](https://code.visualstudio.com/docs/setup/setup-overview) covers it.
+
 #### Step 2 — Install Node 24 if it is missing
 
 ```bash
@@ -95,8 +99,8 @@ If no `v24.x` version is listed:
 nvm install 24
 ```
 
-**Important:** installing Node 24 does not make it your default. `node --version` can still print an
-older version here. Stage 2 fixes that for your repo.
+**Important:** having Node 24 installed does not mean every new terminal starts on it. Your default
+version can still point at an older one. Stage 2 fixes that for your repo with `.nvmrc`.
 
 #### Step 3 — Check you are signed in to GitHub
 
@@ -147,8 +151,8 @@ requests against, and Node 24 pinned.
 Each stage gets a folder under `modules/`.
 
 ```bash
-mkdir -p <repo-name>/modules/m01-dev-environment-git-github
-cd <repo-name>
+mkdir -p ~/<repo-name>/modules/m01-dev-environment-git-github
+cd ~/<repo-name>
 git init -b main
 ```
 
@@ -223,7 +227,7 @@ exist before you can open a PR.
 ### Stage 3 — Practise the core Git commands
 
 **Goal:** see each command move a change between the working tree, the staging area and the history,
-and see `revert` and `reset` side by side.
+clone a repo, and see `revert` and `reset` side by side.
 
 **Important:** do this in a throwaway repo **outside** your project, so mistakes cost nothing and your
 project history stays clean.
@@ -231,7 +235,7 @@ project history stays clean.
 #### Step 1 — Make the practice repo, stage a file and commit it
 
 ```bash
-mkdir /tmp/git-practice && cd /tmp/git-practice
+cd "$(mktemp -d)"                # a fresh empty folder, safe to re-run
 git init -b main
 echo "line one" > notes.txt
 git status --short               # ?? notes.txt  (new, untracked)
@@ -280,11 +284,30 @@ git log --oneline                # "fix: oops" is gone from the log
 git reflog                       # ...but is still listed here
 ```
 
-#### Step 5 — Look up the difference
+#### Step 5 — Clone a repo
+
+`git clone` copies a repo, with its whole history, into a new folder. Clone the repo you pushed in
+Stage 2 into a fresh folder:
+
+```bash
+cd "$(mktemp -d)"
+git clone https://github.com/<user>/<repo-name>.git
+cd <repo-name>
+git log --oneline
+```
+
+Expected output (your hash differs):
+
+```text
+<hash> docs: add README and pin Node 24 in .nvmrc
+```
+
+#### Step 6 — Look up the difference
 
 Read the Git documentation for [`git revert`](https://git-scm.com/docs/git-revert) and
 [`git reset`](https://git-scm.com/docs/git-reset), using what you just saw, rather than guessing. Say
-the difference out loud before you move on. The Concepts section has a full comparison.
+the difference out loud before you move on. Section 4 has a full comparison to check yourself
+against.
 
 **Why it matters:** these commands move changes between three places: the working tree, the staging
 area and the commit history. Doing each once on purpose makes that model concrete. See *The working
@@ -294,6 +317,8 @@ tree, the staging area and commits* in section 4.
 
 - [ ] `git log --oneline` in your practice repo showed a `Revert "feat: add wip line"` commit.
 - [ ] After the reset, `git log --oneline` no longer shows `fix: oops`, and `git reflog` still does.
+- [ ] `git clone` created a `<repo-name>` folder, and `git log --oneline` inside it shows your first
+      commit.
 - [ ] You can explain, in your own words and without notes, the difference between `git revert` and
       `git reset`.
 
@@ -307,7 +332,7 @@ environment file.
 Name it for the stage and the topic.
 
 ```bash
-cd <repo-name>
+cd ~/<repo-name>
 git switch -c feat/module-01/hello-node
 ```
 
@@ -349,16 +374,18 @@ Create throwaway files at real paths and ask Git which rule matches each:
 ```bash
 mkdir -p modules/m01-dev-environment-git-github/src/generated/prisma node_modules/x dist coverage
 touch modules/m01-dev-environment-git-github/src/generated/prisma/client.js node_modules/x/i.js dist/a.js coverage/c.json .env .env.test app.db
-git check-ignore -v modules/m01-dev-environment-git-github/src/generated/prisma/client.js .env app.db dist/a.js
+git check-ignore -v modules/m01-dev-environment-git-github/src/generated/prisma/client.js node_modules/x/i.js .env app.db dist/a.js coverage/c.json
 ```
 
 Expected output, one line for each path, naming the rule that matched:
 
 ```text
 .gitignore:12:**/generated/prisma	modules/m01-dev-environment-git-github/src/generated/prisma/client.js
+.gitignore:2:node_modules/	node_modules/x/i.js
 .gitignore:5:.env	.env
 .gitignore:9:*.db	app.db
 .gitignore:15:dist/	dist/a.js
+.gitignore:16:coverage/	coverage/c.json
 ```
 
 Then delete the throwaway files:
@@ -494,7 +521,7 @@ Automatic merge failed; fix conflicts and then commit the result.
 `git status --short` lists the file as `UU`, meaning both sides modified it.
 
 **Important:** decide your merge commit messages before you merge, including for the clean merge.
-Pushed commits stay in the history.
+Nothing is pushed yet, but once you push, those commits stay in the history.
 
 #### Step 3 — Resolve the conflict
 
@@ -548,8 +575,8 @@ gh pr create --base main --head feat/module-01/hello-node \
 Write the Test plan from checks you actually ran, such as running the script or
 `git check-ignore`. The PR flow follows [GitHub Flow](https://docs.github.com/en/get-started/using-github/github-flow).
 
-**Important:** this stage lists opening the PR before creating the conflict. A PR follows its branch,
-so pushing the conflict commits to the branch adds them to the PR either way.
+**Important:** you can open the PR before or after you create the conflict. A PR follows its branch,
+so pushing more commits to the branch adds them to the PR either way.
 
 #### Step 2 — Check the commits
 
@@ -585,7 +612,8 @@ a Conventional Commit. Your own commits inside the PR are.
 
 ## 4. Concepts you need
 
-Read these after Stage 7. They explain what the steps mean. They do not repeat them.
+Dip into these when a stage points to one, and read them all after Stage 7. They explain what the
+steps mean. They do not repeat them.
 
 ### The working tree, the staging area and commits
 
@@ -598,9 +626,8 @@ Git keeps your work in three places, and every command in Stage 3 moves a change
 | Commit history | The saved snapshots |
 
 A change moves in one direction: edit, then `git add`, then `git commit`. The middle step is the
-useful one, because it lets you choose what goes into a commit. In Stage 4, `.gitignore` and
-`.env.example` both existed in your working tree, and staging them one at a time is what made two
-separate commits.
+useful one, because it lets you choose what goes into a commit, so two files edited together can
+become two separate commits.
 
 Each command looks at a different pair of places:
 
@@ -608,9 +635,8 @@ Each command looks at a different pair of places:
 | --- | --- |
 | `git diff` | Working tree against staging area: edits you have not staged |
 | `git diff --staged` | Staging area against the last commit: what the next commit would hold |
-| `git restore --staged <file>` | Takes a change out of staging; your edit stays in the file |
-| `git restore <file>` | Throws the edit away from the working tree |
-| `git stash` / `git stash pop` | Sets edits aside, then brings them back |
+| `git restore --staged <file>` | Staging area back to the last commit; your edit stays in the file |
+| `git restore <file>` | Working tree back to the staging area; the edit is gone |
 
 Treat `git restore <file>` as permanent. The edit was never in a commit, so Git has no copy of it to
 give back. This three-places model is also why `reset --hard`, covered next, is risky: it changes all
@@ -648,8 +674,9 @@ the record of the join. At this stage rebase is conceptual only. You do not need
 
 ## 5. Common pitfalls
 
-- **Your shell is on the wrong Node.** Installing Node 24 does not make it the default. Run `nvm use`
-  inside the repo and confirm with `node --version`. Do not assume.
+- **Your terminal starts on the wrong Node.** Having Node 24 installed does not mean a new terminal
+  uses it, because your default version can point at an older one. Run `nvm use` inside the repo and
+  confirm with `node --version`. Do not assume.
 - **You can't open a PR on an empty repo.** A brand-new GitHub repo has no branch, so there is nothing
   to merge into. Push a first commit to `main` before you branch.
 - **Git's default merge message is not a Conventional Commit.** `git merge` writes

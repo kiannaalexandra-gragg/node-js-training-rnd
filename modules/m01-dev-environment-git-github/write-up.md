@@ -56,11 +56,11 @@ Everything below is the order I did it in. `<user>` stands for your GitHub usern
   ```
   Also check that Bruno is installed (on macOS, look in `/Applications`).
 
-  Then confirm the terminal basics you will lean on for the rest of the stage:
+  Then confirm the terminal basics you will lean on for the rest of the stage. These are the commands I used in the later steps, so the folder and `.nvmrc` below only exist once steps 2 and 3 are done:
   ```bash
   echo $SHELL                 # which shell you are in
-  ls -a ~/node-js-foundation-training   # list files, including hidden ones like .git and .nvmrc
-  cd ~/node-js-foundation-training      # move into a folder
+  ls -a                       # list files, including hidden ones like .git and .nvmrc
+  cd <folder>                 # move into a folder
   mkdir -p modules/m01-dev-environment-git-github   # make a folder, and any parents
   cat .nvmrc                  # print a file
   printf '24\n' > .nvmrc      # write a file (> replaces, >> appends)
@@ -235,7 +235,7 @@ Everything below is the order I did it in. `<user>` stands for your GitHub usern
 - **The shell's default Node was 22.** Node 24.22.0 was installed through nvm, but the default alias pointed at 22, so `node --version` printed v22.23.0 until I ran `nvm use` in the repo, where `.nvmrc` told it to use 24.
 - **A new GitHub repo has no branch.** `gh repo create` leaves it empty, so there was nothing for a PR to target until I pushed a first commit to `main`. That is why my first push was directly to `main`.
 - **Git's default merge message isn't a Conventional Commit.** `git merge` writes `Merge branch '...'`. I had to pass `-m` on the merges I made myself. The merge commit GitHub makes when you merge the PR (`Merge pull request #1 from ...`) is also not conventional, and I cannot change it from the command line.
-- **I added a merge commit message without being asked.** I wrote `chore: merge greeting branch` for the first, clean merge before I had agreed a message for it. It was already pushed by the time I raised it, so it stays in the history.
+- **I chose the first merge commit message on the spot.** I wrote `chore: merge greeting branch` for the clean merge without settling the wording first. It was pushed with the branch, so it stays in the history.
 
 ## Checkpoint evidence
 
