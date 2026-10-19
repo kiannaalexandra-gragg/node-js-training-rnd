@@ -18,7 +18,7 @@ in `modules/m02-modern-javascript-async-await/`, on the branch `feat/module-02/a
 
 These four files are the whole stage folder. The event-loop snippet and the research experiments were throwaway scripts that I ran from a scratch folder outside the repo (written `~/m02-scratch/` in this write-up). Their code and results are in this write-up, under steps 7 and 8 of "How to build it".
 
-Run any of the four from the repo root, on Node 24:
+Run the checks and the two scripts from the repo root, on Node 24:
 
 ```bash
 nvm use
@@ -30,7 +30,7 @@ node modules/m02-modern-javascript-async-await/fs-refactor.mjs
 I built the toolkit one function at a time and ran the checks after each one, so each function was
 passing before I started the next. The order was `sleep`, `retry`, `withTimeout`, `mapLimit`.
 
-Environment: Node v24.22.0 (from `.nvmrc`), macOS, zsh.
+Environment: Node v24.22.0 (`.nvmrc` pins Node 24), macOS, zsh.
 
 ## Why it's built this way (key decisions)
 
@@ -384,7 +384,7 @@ Start each session with `cd ~/node-js-foundation-training` and `nvm use`. Check 
   The full script:
 
   <details>
-  <summary><code>research.mjs</code> (23 checks)</summary>
+  <summary><code>research.mjs</code> (24 checks)</summary>
 
   ```js
   // Scratch file (not part of the repo): one tiny experiment per research topic.
@@ -429,6 +429,14 @@ Start each session with `cd ~/node-js-foundation-training` and `nvm use`. Check 
     assert.equal(counter.n, 2);
     // Modules are strict, so `this` inside the plain callback is undefined.
     assert.throws(() => counter.incPlain(), TypeError);
+  });
+
+  await check('template literals evaluate expressions and can span lines', () => {
+    const name = 'toolkit';
+    const n = 2;
+    assert.equal(`${name} has ${n * 2} checks`, 'toolkit has 4 checks');
+    assert.equal(`a
+  b`, 'a\nb');
   });
 
   await check('destructuring, defaults, rest and spread', () => {
@@ -681,7 +689,7 @@ Start each session with `cd ~/node-js-foundation-training` and `nvm use`. Check 
 
   </details>
 - *Why:* an assertion that passes means my picture of the feature is right, and one that fails shows what I had wrong.
-- *Result:* all 23 checks passed on the first run, and the one-liner printed the six export names (`RetryError`, `TimeoutError`, `mapLimit`, `retry`, `sleep`, `withTimeout`) and `undefined` for `t.default`. I wrote each assertion from what I already expected, so this confirmed behaviour; it was not a discovery.
+- *Result:* all 24 checks passed on the first run, and the one-liner printed the six export names (`RetryError`, `TimeoutError`, `mapLimit`, `retry`, `sleep`, `withTimeout`) and `undefined` for `t.default`. I wrote each assertion from what I already expected, so this confirmed behaviour; it was not a discovery.
 
 **9. Commit, push, open the pull request and merge it.**
 - *Goal:* deliver the stage the way M01 taught, with nothing pushed straight to `main`.
@@ -733,7 +741,7 @@ running, which is why `mapLimit` needs its own `failed` flag.
 
 ## What tripped me up
 
-- **A new terminal started on Node 22, again.** A plain `node` in a fresh shell printed v22.23.0. It was v24.22.0 only after `nvm use` in the repo, where `.nvmrc` says 24. A scratch folder without an `.nvmrc` printed `No .nvmrc file found` and ran my experiment on Node 22. That experiment behaves the same on 22 and 24, but I should have copied `.nvmrc` into the scratch folder, which I did for the second experiment.
+- **A new terminal started on Node 22, again.** A plain `node` in a fresh shell printed v22.23.0. It was v24.22.0 only after `nvm use` in the repo, where `.nvmrc` says 24. The scratch scripts in `~/m02-scratch/` were run from the repo root, so they used the repo's `.nvmrc`. The scratch *copies* I made for the `return await` experiment were different: that folder had no `.nvmrc`, so `nvm use` printed `No .nvmrc file found` and the experiment ran on Node 22. It behaves the same on 22 and 24, but I should have copied `.nvmrc` into it, which I did for the `!failed &&` experiment.
 - **`time ... | grep real` printed nothing in zsh.** I was timing two `node -e` scripts, and zsh's `time` has no line starting with `real`. I redid the measurement with a small Python timer, which gave 0.02 s and 3.02 s.
 - **Round 1 of the timing was the slowest every time.** I expected parallel to be fast in every round. Parallel round 1 took 246 ms and 254 ms in the two runs, against 80 to 102 ms in later rounds. I did not investigate it, so I cannot say why.
 - **The first crash from a missing `await` was a raw error, not a hint.** When I removed `return await`, the run died with `Error: fail 0` thrown from the check file, and nothing in the message said the cause was a missing `await` in `retry`. I only knew because I had made the change myself.
@@ -769,7 +777,7 @@ ok - mapLimit rejects a bad limit
 ```
 
 `fs-refactor.mjs` printed `ok - callback and async/await versions produce the same result` and
-`ok - both versions fail with ENOENT for a missing file`, and `ok - both versions fail with SyntaxError for malformed JSON`. The scratch `research.mjs` printed 23 `ok`
+`ok - both versions fail with ENOENT for a missing file`, and `ok - both versions fail with SyntaxError for malformed JSON`. The scratch `research.mjs` printed 24 `ok`
 lines and `info - typeof Temporal on Node v24.22.0: undefined`, and the exports one-liner listed the six
 named exports with no default.
 
@@ -848,4 +856,4 @@ checks, a 3-round timing run (sequential 2786 ms, parallel 419 ms, 6.7x faster) 
 ## What I'd do differently
 
 - **Add a warm-up round to the timing script and report it separately.** Round 1 was the slowest parallel round in both runs. I do not know the cause, so I would add a warm-up round, then see whether the gap closes. Until I test it, any explanation is a guess.
-- **Copy `.nvmrc` into any scratch folder** before running an experiment, so the experiment runs on the pinned Node.
+- **Copy `.nvmrc` into any scratch copy of the code** before running an experiment in it, so the experiment runs on the pinned Node.

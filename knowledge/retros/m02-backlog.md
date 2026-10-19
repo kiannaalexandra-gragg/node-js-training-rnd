@@ -14,8 +14,9 @@ one-liners.
 
 Stages 3 to 8 were restructured into exercises: requirements, a scaffold with hints, self-checks, and
 a collapsed reference. The reference code and the checks were verified by script, and each scaffold was
-confirmed to fail its own stage's first check. What has not been tested is whether a learner can
-finish from the hints, or whether three hints per stage is the right amount. Run a cold read with
+confirmed to fail: Stages 3 to 6 and 8 at their own stage's checks, and Stage 7 with a "not implemented
+yet" error from the script, since it has no self-checks. What has not been tested is whether a learner
+can finish from the hints, or whether two or three hints per stage is the right amount. Run a cold read with
 someone who did not build it.
 
 ## [BACKLOG] ES module convention differs from `coding-standards.md`

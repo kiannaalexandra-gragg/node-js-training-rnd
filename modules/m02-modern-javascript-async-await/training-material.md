@@ -48,7 +48,8 @@ the final acceptance check, nothing more.
 
 **How the build stages work.** In Stages 3 to 8 you write the core logic yourself. Each stage has the
 same shape: *what it must do*, then *your turn* (a scaffold with hints you can open one at a time), then
-the *self-checks* (they fail until your code works, and their messages point at what is wrong), then a
+the *self-checks*, or in Stage 7 the script itself (they fail until your code works, and their messages
+say what is wrong), then a
 *reference implementation* to open only after you have tried, and *compare with your version* notes on
 the design decisions. Give each hint and the reference a real attempt first.
 
@@ -155,7 +156,7 @@ Run the file from your repo root with `node ~/m02-scratch/research.mjs`.
 | Topic | Experiment | What you should be able to assert |
 | --- | --- | --- |
 | Arrow functions and `this` | An object whose method calls `[1, 2].forEach(() => { this.n++ })`, then the same with `function () { this.n++ }` | The arrow keeps the outer `this`. The plain function throws `TypeError` (`this` is `undefined` in a module) |
-| Template literals | Build a string with `${expression}` | The expression is evaluated and inserted |
+| Template literals | Build a string with `${expression}`, and one across two lines | The expression is evaluated and inserted, and the string keeps the line break |
 | Destructuring, spread, rest, defaults | `const { a, b = 10, ...others } = obj`, `[first, , third, ...tail] = arr`, `{ ...x, y: 99 }`, `(...nums) => ...` | Defaults apply only for `undefined`. Spread copies one level, and later keys win |
 | `?.`, `??`, `??=` | Compare `0 \|\| 5` with `0 ?? 5`, and `'' ?? 'anon'` | `\|\|` replaces any falsy value, `??` only `null` or `undefined`. `x ??= 7` assigns only when `x` is nullish |
 | Truthy/falsy and equality | Check `[false, 0, -0, 0n, '', null, undefined, NaN]`, then `0 == ''`, `null == undefined`, `NaN === NaN`, `Object.is(NaN, NaN)`, `typeof null` | The eight are falsy. `[]`, `{}`, `'0'` are truthy. `==` coerces. `NaN` is not equal to itself. `typeof null` is `'object'`. Prefer `===` |
@@ -836,10 +837,12 @@ async function fetchPost(id) {
 async function fetchSequential() {
   // TODO: fetch posts 1..10 one at a time, each fetch finishing before the next starts.
   // Return the posts in order.
+  throw new Error('fetchSequential is not implemented yet');
 }
 
 async function fetchParallel() {
   // TODO: start all ten fetches at once and wait for all of them. Return the posts in order.
+  throw new Error('fetchParallel is not implemented yet');
 }
 
 async function timed(label, fn) {
@@ -1275,7 +1278,7 @@ server pushes back.
 
 | Symptom | Cause | Fix |
 | --- | --- | --- |
-| `node --version` prints `v22.x` | A fresh terminal uses your default Node, not the version in `.nvmrc` | Run `nvm use` in the repo root, and run the scripts from there. |
+| `node --version` is not the version in `.nvmrc` | A fresh terminal uses your default Node, which can be older | Run `nvm use` in the repo root, and run the scripts from there. |
 | A failure shows up as a raw error and nothing is retried | `return promise` inside a `try` skips the `catch` | Use `return await` where this `catch` must handle the rejection. It is not needed outside a `try`. |
 | `if (isReady())` is always true | An `async` function returns a promise, and a promise is always truthy | `await` it first |
 | A `forEach(async ...)` loop finishes before its callbacks | `forEach` ignores the promises its callback returns | `for...of` with `await` for in-order work, or `map` with `Promise.all` or `mapLimit` |
@@ -1288,7 +1291,6 @@ server pushes back.
 | A timing check fails at random | Timers are approximate | Allow a few milliseconds of slack |
 | Timings vary between runs | Network conditions | Run several rounds. |
 | Round 1 is slower than the rest | Not established. A guess such as connection setup is untested. | Treat round 1 with caution, and test a cause before you claim it. |
-| `time cmd \| grep real` prints nothing in zsh | zsh's `time` output has no `real` line | Time it from a script |
 
 ## 6. Check yourself against the definition of done
 
