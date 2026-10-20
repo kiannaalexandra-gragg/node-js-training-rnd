@@ -87,8 +87,8 @@ I measured it with a throwaway script (not in the repo) that does `readFile(path
 | Whole-file version, 600 MB file | `RangeError: Invalid string length`, because `buffer.constants.MAX_STRING_LENGTH` is 536,870,888 (about 512 MiB) |
 | Streaming CLI, 600 MB file, `--max-old-space-size=32` | succeeded, 5.7 s |
 
-So whole-file reading costs about ten times the file size in memory at 100 MB, and past about 512 MiB it
-fails outright whatever RAM the machine has. The streaming version finishes a 600 MB file under a 32 MB
+So whole-file reading costs about eight times the file size in memory at 100 MB (821 MB for a 104,857,613-byte
+file), and past about 512 MiB it fails outright whatever RAM the machine has. The streaming version finishes a 600 MB file under a 32 MB
 heap cap.
 
 The streaming run is not perfectly flat: peak memory was about 85 MB for the 100 MB file and about 117 MB

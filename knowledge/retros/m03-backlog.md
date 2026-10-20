@@ -16,7 +16,7 @@ each module on every OS in the cohort.
 
 ## [BACKLOG] The guided exercises have not been tried by someone who did not build the stage
 
-Stages 4, 5 and 8 are exercises with a scaffold, up to six hints, self-checks and a collapsed reference.
+Stages 4, 5 and 8 are exercises with a scaffold, up to four hints, self-checks and a collapsed reference.
 The references and checks were verified by running them (27 checks pass from a clean `npm ci`), the Stage 8
 scaffold was confirmed to fail fast (a `TimeoutError` after 5 s) when the request handler never answers, and the
 documented numbers (file size, line count, both SHA-256 values, exit codes, the 32 MB and 64 MB heap-cap

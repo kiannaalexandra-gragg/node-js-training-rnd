@@ -516,7 +516,7 @@ head -3 data/access.log
 
 ### Stage 4 — Count the lines (`aggregate.js`)
 
-**Goal:** turn a stream of log lines into counts, using memory that does not grow with the number of lines.
+**Goal:** turn a stream of log lines into counts, using memory that does not grow with the number of lines, as long as the number of distinct paths stays small.
 
 This half of the CLI knows nothing about files, flags or exit codes. That keeps it easy to check with a plain array.
 
@@ -761,13 +761,13 @@ export async function aggregateLines(lines, { top = 5 } = {}) {
 
 **Compare with your version.**
 
-- It never stores a line, so it counts a file of any size in the same space. It takes an async iterable, so the streaming lives one level up.
+- It never stores a line, so its memory does not grow with the number of lines, as long as the number of distinct paths stays small. It takes an async iterable, so the streaming lives one level up.
 - Sorted keys and tie-breaking by path make the report identical every run.
 
 **Done when:**
 
 - [ ] `node src/log-report/aggregate.check.js` prints six `ok - ...` lines and no error.
-- [ ] `aggregateLines` keeps counters only (nothing in your code grows with the number of lines), and you can explain why it takes an async iterable and not a file name.
+- [ ] `aggregateLines` keeps counters only (nothing in your code grows with the number of lines, only with the number of distinct paths), and you can explain why it takes an async iterable and not a file name.
 
 ### Stage 5 — The streaming CLI (`log-report.js`)
 
@@ -1153,7 +1153,7 @@ node -p "const r = require('./report.json'); [r.totalLines, r.malformedLines, r.
 shasum -a 256 report.json
 ```
 
-The first command should print `Wrote report.json: 2231981 lines, 2200 malformed` and a `stats:` line with a time of a few seconds and a peak memory figure. Then try the failure cases:
+The first command should print `Wrote report.json: 2231981 lines, 2200 malformed` and a `stats:` line with a time under about a second on the reference machine and a peak memory figure. Then try the failure cases:
 
 ```bash
 node src/log-report/log-report.js -i nope.log; echo "exit=$?"
@@ -1230,7 +1230,7 @@ node -p "require('node:buffer').constants.MAX_STRING_LENGTH"
 | Run | Result |
 | --- | --- |
 | streaming CLI, 100 MB file | peak about 85 MB, under 1 s |
-| whole-file version, 100 MB file | peak about 820 MB, about ten times the streaming run |
+| whole-file version, 100 MB file | peak about 820 MB: about eight times the file and about ten times the streaming run (this peak can vary between runs) |
 | streaming CLI, `--max-old-space-size=32` | still succeeds |
 | whole-file version, `--max-old-space-size=64` | `FATAL ERROR: Reached heap limit Allocation failed - JavaScript heap out of memory`, exit 134 |
 | streaming CLI, 600 MB file | succeeds, peak about 117 MB |
@@ -1963,7 +1963,7 @@ npm ci; echo "exit=$?"
 ls node_modules
 ```
 
-The lockfile holds 7.x but `package.json` now asks for `^6.0.0`, so `npm ci` refuses (`npm ci can only install packages when your package.json and package-lock.json ... are in sync`, naming `lock file's semver@7.8.5 does not satisfy semver@6.3.1`). It exits `1` and installs nothing. Put it back, then try development dependencies and `npx`:
+The lockfile holds 7.x but `package.json` now asks for `^6.0.0`, so `npm ci` refuses (`npm ci can only install packages when your package.json and package-lock.json ... are in sync`, naming `lock file's semver@7.8.5 does not satisfy semver@6.3.1`; your version numbers will differ). It exits `1` and installs nothing. Put it back, then try development dependencies and `npx`:
 
 ```bash
 npm pkg set dependencies.semver="^7.5.0"
