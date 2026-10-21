@@ -312,7 +312,8 @@ These were not hands-on, so they come from the Prisma 7 documentation and not fr
   file, the `generator` block goes, `generate` becomes `emit`, `migrate dev` and `migrate deploy` are
   replaced, and queries use chained calls (`.where(...).all()`). That page uses PostgreSQL examples
   throughout and does not say what SQLite support looks like, so I cannot confirm it, which is why this
-  program stays on 7.
+  program stays on 7. The program's solution design says Prisma 7 stays supported for 18 months after
+  Prisma 8 is generally available (its pre-cohort checklist, item 2).
 
 ## What tripped me up
 
@@ -330,7 +331,7 @@ These were not hands-on, so they come from the Prisma 7 documentation and not fr
   it appended `DATABASE_URL` to my `.env`, and it created `.agents/`, `.claude/`, `.windsurf/`,
   `skills-lock.json` and a `task-api/.gitignore`. The first folders hold documentation for AI coding
   assistants. None of that is part of the stage, and `.claude/` must not be committed (AGENTS.md). My
-  attempt to remove them from the shell was refused, so I deleted them by hand (see "Not yet covered"
+  attempt to remove them from the shell was refused, so I deleted them by hand (see "Status of the remaining items"
   below). The extra `.gitignore` also changed my check: `git check-ignore -v` on the
   generated client matched `task-api/.gitignore`, so it no longer proves the repo's root rule
   `**/generated/prisma` works.
@@ -369,7 +370,13 @@ These were not hands-on, so they come from the Prisma 7 documentation and not fr
 - **`?q=%` and `?q=_` return every task.** `contains` becomes `LIKE '%q%'`, and `%` and `_` are LIKE
   wildcards that Prisma does not escape, so `?q=%25` (a literal `%`) matched all 24 tasks. It is not an
   injection, since the value is still a parameter, but searching for a literal `%` or `_` cannot work.
-  I did not fix it. See "Not yet covered".
+  I did not fix it. See "Status of the remaining items".
+- **Prisma's own `error` log printed a code frame for every normal 404 and 409.** My first `db.ts` set
+  `log: ['warn', 'error']`. In the `check:errors` output each of the three cases printed a
+  `prisma:error` block (file path, the failing call, the Prisma message) twice, and a review reproduced it
+  for a plain `PATCH` on an unknown id, which correctly returned 404. The central handler already logs
+  genuine 500s with the request id, so I removed `'error'` from the log levels: `log` is `['warn']`, or
+  `['query', 'warn']` with `LOG_QUERIES=true`, and `check:errors` now prints only its three `PASS` lines.
 - **P2002 and P2003 cannot happen through the v1 routes.** Nothing a client can send collides with a
   unique column or sets a foreign key. So I could not prove them with Bruno alone. I wrote
   `scripts/check-prisma-errors.ts`, which runs a real failing query for each code, sends the error
@@ -433,11 +440,15 @@ freshly reset and seeded database, `npm run bruno` printed:
 ```
 
 v1 had 29 requests (7 in `Tasks`, 22 in `Errors`). The 36 are those 29, with `Tasks` 02, 03 and 04
-edited for the v2 shape, plus 5 in `Listing/` and `Errors/23` and `24`. I got these numbers from a
-fresh copy of the project (no `node_modules`, no `dev.db`, no generated client) that I set up by
-following the README: `npm install`, `npm run db:generate`, `npm run db:deploy`, `npm run db:seed`, then
-`npm start` and `npm run bruno`. In that copy `npm run typecheck` failed with `Cannot find module
-'./generated/prisma/client.ts'` until I ran `db:generate`, then exited 0.
+edited for the v2 shape, plus 5 in `Listing/` and `Errors/23` and `24`. I first ran the README flow in a
+fresh copy of the project (tracked and new files copied into an empty folder: no `node_modules`, no
+`dev.db`, no generated client): `npm install`, `npm run db:generate`, `npm run db:deploy`,
+`npm run db:seed`, then `npm start` and `npm run bruno`. That run gave 36 requests, 48 tests and 76
+assertions. In that copy `npm run typecheck` failed with `Cannot find module
+'./generated/prisma/client.ts'` until I ran `db:generate`, then exited 0. The code review later made me
+add one assertion to `Listing/03`, which is why the numbers above say 49 tests: they come from the
+`git clone` of the committed branch described under "The pull request" below, and from a run on my own
+`dev.db`.
 
 **`P2002`, `P2025` and `P2003` each map through the existing handler.** `npm run check:errors` exited 0
 and printed:
@@ -503,15 +514,16 @@ $ git log --oneline --graph origin/main -9
 *   7f88f42 Merge pull request #6 from kiannaalexandra-gragg/feat/module-06/sql-fundamentals-sqlite
 ```
 
-Before I pushed, I cloned the branch into an empty folder and followed the README: install, `db:generate`,
+Before I pushed, I made a `git clone` of the committed branch from my local repo into an empty folder and
+followed the README: install, `db:generate`,
 `db:deploy`, `db:seed`, then `npm run typecheck` (exit 0), `npm run bruno` (36 of 36 requests, 49/49 tests,
 76/76 assertions) and `npm run check:errors` (exit 0, three `PASS` lines).
 
-**Not yet covered (these are the open items, not results):**
+**Status of the remaining items (the open ones are not results):**
 
 - Closed: the merge. PR #7 is merged (see "M07 merged to `main` by pull request" above). I did not re-run
-  the checks on `main` after the merge. The ones above were run on the branch and on a fresh clone of it
-  before I pushed.
+  the checks on `main` after the merge. The ones above were run on the branch and on a local clone of the committed
+  branch before I pushed.
 - Not recorded: the trainer's own checkpoint check. It is the trainer's act, not part of my evidence, and
   no result has been given to me.
 - Known and not fixed: `?q=` treats `%` and `_` as wildcards (see "What tripped me up"), and

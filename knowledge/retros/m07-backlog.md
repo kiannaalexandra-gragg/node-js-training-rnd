@@ -34,7 +34,7 @@ VALIDATE fixed one FIX NOW:
 
 ## [BACKLOG] Decisions made without the EM (EM-owned files, conventions)
 
-- `tasks.md` is EM-authored. 33 of its 34 checkboxes were ticked, as in M05 and M06, and nothing else in it changed. The EM may prefer the file left untouched. "Continue the branch → PR → merge habit" stays unticked until the PRs exist.
+- `tasks.md` is EM-authored. All 34 of its checkboxes are ticked, as in M05 and M06, and nothing else in it changed. The EM may prefer the file left untouched. "Continue the branch → PR → merge habit" was ticked after the build repo's PR #7 was merged; the content repo's own PR is not open yet.
 - **P2003 is 409, not 400**, and the message is fixed text. (The brief says "409 or 400".)
 - `Task.id` stays a UUID string and `User` and `Tag` use integer ids. The M06 backlog had left the id mapping to M07.
 - Every task created through the API belongs to one default owner, `owner@example.com`, because v1 has no users. The hand-edited migration creates it.
@@ -46,8 +46,8 @@ VALIDATE fixed one FIX NOW:
 
 ## [BACKLOG] Status of the PRs and the checkpoint
 
-- **Build repo:** committed as seven Conventional Commits (no `Co-Authored-By` trailer) on `feat/module-07/prisma-orm-migrations`, pushed, and opened as [PR #7](https://github.com/kiannaalexandra-gragg/node-js-foundation-training/pull/7) against the owner's own repo. It was MERGED by the owner on 2026-10-21 09:53 UTC (merge commit `3604be1`). A fresh clone of the pushed branch passed the README flow (typecheck 0, Bruno 36/36, `check:errors` 3 PASS).
-- **Content repo:** nothing is committed. `feat/module-07/write-up-and-training-material` holds the two new documents, the `tasks.md` ticks, the `coding-standards.md` edit and this file, all uncommitted, and no PR exists yet.
+- **Build repo:** committed as seven Conventional Commits (no `Co-Authored-By` trailer) on `feat/module-07/prisma-orm-migrations`, pushed, and opened as [PR #7](https://github.com/kiannaalexandra-gragg/node-js-foundation-training/pull/7) against the owner's own repo. It was MERGED by the owner on 2026-10-21 09:53 UTC (merge commit `3604be1`). A `git clone` of the committed branch (made from the local repo, before the push) passed the README flow (typecheck 0, Bruno 36/36, `check:errors` 3 PASS).
+- **Content repo:** committed on `feat/module-07/write-up-and-training-material` as five commits (the two documents, the `tasks.md` ticks, this file, the `coding-standards.md` edit, and a review-fix commit). The branch was reviewed again before its PR, and the PR is opened after that.
 - `write-up.md` has no `GAP:` left. Its Checkpoint evidence has the PR #7 link and the `git log --graph` of `main` after the merge. As in M05 and M06, the author's PR link belongs in `write-up.md` only, not in the training material. The trainer's own checkpoint check is recorded as "not recorded", as in M06. The checks were not re-run on `main` after the merge.
 - The "explain `migrate dev` against `migrate deploy` in your own words" text in Checkpoint evidence was drafted from the runs, and the trainee then confirmed it as their own (2026-10-21). On that review two claims that went beyond the runs were cut back: `migrate dev` "offers to wipe the database if the history does not match" became "when an applied migration was edited" (the only case seen), and `migrate deploy` "never resets" became "writes none, and I never saw it ask for a reset". `deploy` was not run against a database with an edited migration, so what it does then is not claimed. The same edit is in the training material's Stage 14.
 

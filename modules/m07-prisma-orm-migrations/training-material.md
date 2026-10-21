@@ -127,7 +127,7 @@ anything, so a red run later is yours.
    Stop the server when it finishes. Write down the **number of requests** and the **number of tests and
    assertions** it printed: the reference M05 collection had 29 requests. Your count is your baseline, and
    the brief's rule is that every one of those still passes at the end, apart from the three requests
-   whose assertions describe the v1 response shape (Stages 9 and 12 say which).
+   whose assertions describe the v1 response shape (Stage 13 says which).
 
 3. Skim your M06 `schema.sql` and keep its ERD open. Stage 4 translates it.
 
