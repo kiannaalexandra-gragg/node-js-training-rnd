@@ -137,11 +137,33 @@ reaches one central handler. `AppError` subclasses set their own status, a `ZodE
 - Integration tests use a real SQLite test database (`test.db`), not mocks of the data layer.
 - `prisma migrate deploy` runs in `globalSetup`. Tables are cleaned in `beforeEach`.
 - Tests must pass in random order (`--randomize`) and run with `--runInBand`.
+- Keep the tests' settings in a git-ignored `.env.test` (commit `.env.test.example`). Give each test run its
+  own database file: `globalSetup` builds `test-<pid>-<time>.db` from the configured `test.db`, migrates it and
+  sets `DATABASE_URL`, and `globalTeardown` deletes it. A fixed shared file breaks as soon as two test
+  processes overlap (two terminals, an editor's runner), because each run's cleanup wipes the other's rows.
+- A test run deletes every row, so check the database before any wipe and fail closed: the URL must be a
+  `file:` URL, cut the query string off, resolve the path, and accept only a name that starts with `test`
+  and ends in `.db`. Check it in `globalSetup`, in `globalTeardown` and again at the start of `resetDb()`, and
+  test the check itself. `prisma7.config.ts` also loads `.env`, so a missing `.env.test` must stop the run and
+  not fall back to `dev.db`.
+- `resetDb()` deletes in foreign-key order (tasks, tags, users) and keeps or restores the default owner that
+  `create` needs. Make rows with factories that write through Prisma, and pass every value a test depends
+  on (dates to sort by), so no test relies on the clock or on insertion order.
+- Call the exported `app` through a Supertest agent that carries the API key. Do not mock the data layer.
+  Mock only at a boundary: `jest.spyOn` on a method of an imported object works in ESM, while `jest.mock`
+  under a static import silently does nothing (use `jest.unstable_mockModule` with a dynamic import).
+- Measure coverage on routes, handlers and services (M09 used `coverageProvider: 'v8'`; the default provider
+  was not tried with `@swc/jest`), and set
+  `coverageThreshold` so a drop fails the command. A test that passes before its feature exists is not a
+  red test: read the failure message, not only the count.
+- The CI workflow lives in `.github/workflows/` at the **root** of the repo (GitHub reads no other place),
+  uses `defaults.run.working-directory: task-api`, takes the Node version from `.nvmrc`, and runs
+  `npm ci`, `npm run db:generate`, `npm run typecheck`, then the tests with coverage.
 
 ## Repo hygiene
 
-- `.gitignore` covers `node_modules`, `.env`, `*.db`, the generated Prisma client, `dist`, and
-  `coverage`.
+- `.gitignore` covers `node_modules`, `.env`, `*.db` (and `*.db-journal`, `*.db-wal`, `*.db-shm`, which
+  `*.db` does not match), the generated Prisma client, `dist`, and `coverage`.
 - Ignore the generated Prisma client as `**/generated/prisma`. The client is generated in
   `src/generated/prisma/`, and a pattern with a slash in the middle (`generated/prisma`) only
   matches from the repo root, so it would miss it. Prove an ignore rule with
