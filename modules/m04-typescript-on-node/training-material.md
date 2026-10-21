@@ -2315,7 +2315,9 @@ hand-written `{ title: string; description?: string; status?: TaskStatus }`, and
 - **Which to use** is a question about who is the authority. For an input the server validates, an allow-list (`Pick`) fails safe: forgetting to
   update it hides a field. For a type that mirrors a source and should follow it (a view, a read model), `Omit` follows the source. Decide
   this *before* you write the type, by asking whether a new field should be client-writable by default.
-- **Hand-written** is the worst of both: it neither follows the source nor fails safe, because a stale copy simply stays stale.
+- **Hand-written** fails safe for a new field, as the table shows, but it is a second copy of what `Task` already says. It does not follow
+  the source, so a change to `Task` (the type of `title`, say) has to be repeated by hand, and a stale copy stays stale until something
+  notices.
 - **A derived type does not guard the code that uses it.** A type only constrains what the compiler can see. A function that spreads
   an object into a `Task` copies whatever is in the object at run time, including keys the type never mentioned. Stage 6's `applyTaskUpdate`
   names its fields for that reason.
@@ -2423,6 +2425,7 @@ If every box in section 6 is ticked, this stage is done.
    types** you modelled here (`Task`, `CreateTaskInput`, `UpdateTaskInput`, `Result<T, E>`) become an actual API, so keep them and the
    project setup (`tsconfig.json`, `npm run typecheck`, `tsx`) on hand. This is also where the **Task API** starts: it carries
    forward through M07, M08 and M09 as v1, v2, v3 and v4.
-3. Expect Express 5 in TypeScript, with the app and the server split into separate files. Whether your `Task` keeps `createdAt` and
-   `updatedAt` is a decision to make when you design the API's fields: the M05 stage lists `id`, `title`, an optional `description`
-   and `status` for the API, and the final field list is still an open decision for the program.
+3. Expect Express 5 in TypeScript, with the app and the server split into separate files. The M05 stage fixes the API's fields as `id`,
+   `title`, an optional `description` and `status`, and an error response shape that every endpoint must use. This stage's `Task` also
+   has `createdAt` and `updatedAt`, so that there were server-owned fields to omit from the input types: decide whether they stay on
+   your `Task` and whether the API exposes them.

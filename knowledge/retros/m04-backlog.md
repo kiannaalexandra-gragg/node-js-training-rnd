@@ -10,17 +10,14 @@ stages, and the file names, legend and small slips were corrected. Every learner
 state. One FIX NOW was fixed earlier in VALIDATE: the Stage 3 "Done when" said
 errors appear only on lines marked `// error`, but five error lines carried no marker (Core 3 lines 15-16, Core 4
 `Pt`, Core 5 `_wrong`, Core 6 `import`). They are now marked, the wording names the `never` lines too, and the
-compiler output was re-run and is identical. Nothing in this file blocks the build or the two documents, except the
-first item, which is a deliberate hold.
+compiler output was re-run and is identical. A last review before this repo's PR found no critical or high findings and four text
+problems, all fixed: this file described the documents as uncommitted, the M04 Next step called the Task API field list an open
+decision although the M05 brief fixes it, the size figures below were stale, and one Concepts sentence contradicted its own table.
+Nothing in this file blocks the build or the two documents.
 
-## [BACKLOG] The content repo's M04 documents are not committed or merged yet
-
-The build repo's PR #4 was merged on 2026-10-21 (merge commit `aa0aac0`), and its link and `git log` are in `write-up.md`
-Checkpoint evidence, and the last `tasks.md` box is ticked. What remains is this repo: `write-up.md`, `training-material.md`,
-`tasks.md` and this file are uncommitted on `feat/module-04/write-up-and-training-material`. `write-up.md` does not list its own
-documents' PR under "Not yet covered", and neither did M03's: a document cannot truthfully describe its own merge, and an
-unmerged document is not a gap in the build. Its Checkpoint evidence links the build PR #4 only. As in M03, the author's PR link
-belongs in `write-up.md` only: `content-standards.md` says it is not carried into `training-material.md`.
+The build repo's PR #4 was merged on 2026-10-21 (merge commit `aa0aac0`). Its link and `git log` are in `write-up.md` Checkpoint
+evidence, and the last `tasks.md` box is ticked. As in M03, the author's PR link belongs in `write-up.md` only: `content-standards.md`
+says it is not carried into `training-material.md`.
 
 ## [BACKLOG] The brief's wording differs from what was observed (EM-owned files, not edited)
 
@@ -35,13 +32,15 @@ belongs in `write-up.md` only: `content-standards.md` says it is not carried int
 - **`types` is required.** In 7.0.2 `@types/*` packages are not picked up automatically: without `"types": ["node"]` the
   reference project gave 33 errors. The brief's `tsconfig` essentials list does not mention `types`.
 
-## [BACKLOG] `CreateTaskInput` is a deny-list, and the Task fields are an assumption
+## [BACKLOG] `CreateTaskInput` is a deny-list, and `Task` has two fields the API does not
 
 `CreateTaskInput` uses `Omit`, so a new `Task` field becomes client-writable by default (shown with a `dueDate`
 experiment in the write-up and the Concepts essay). `Pick` would fail safe. The choice was left as built and documented,
-not changed after the fact. Also, the M05 brief lists only `id`, `title`, `description?` and `status`. `createdAt` and
-`updatedAt` were added in M04 so there were server-owned fields to omit. The open decision P3 (the Task API spec) may
-settle the real field list, and then `task.ts` and its checks need updating.
+not changed after the fact. Also, the M05 brief ("Resolved: the Task API contract") fixes the API's fields as `id`, `title`,
+`description?` and `status`. `createdAt` and `updatedAt` were added in M04 so there were server-owned fields to omit. They are
+beyond the contract, so M05 must decide whether `Task` keeps them and whether the API exposes them. The M04 Next step says so.
+`arch-summary.md` still lists the Task API spec (P3) as "Proposed", which disagrees with the M05 brief. `coding-standards.md`
+says the brief wins, and the EM may want to bring the summary into line.
 
 ## [BACKLOG] The training material is untested on Windows
 
@@ -62,10 +61,10 @@ cold read with someone who did not build it.
 
 ## [BACKLOG] The 8-hour scope has not been timed, and the guide is long
 
-The brief allocates 8 hours across two days. The build was not timed. `training-material.md` is 2,271 lines (about 17,100
-words including code) with 11 stages, three of them full exercises and one (Stage 3) of six practice files. About 730 of
-those lines sit in collapsed `<details>` blocks (the three check files, the hints and the reference implementations), and a
-"How to use this guide" table marks which stages are core. `write-up.md` is about 600 lines. Record how long the first cohort
+The brief allocates 8 hours across two days. The build was not timed. `training-material.md` is 2,431 lines (about 18,900
+words including code) with 11 stages, three of them full exercises and one (Stage 3) of six practice files. About 790 of
+those lines sit in 18 collapsed `<details>` blocks (the three check files, the hints and the reference implementations), and a
+"How to use this guide" table marks which stages are core. `write-up.md` is 670 lines. Record how long the first cohort
 takes per stage. Stage 10 (TypeScript 6 against 7) needs a network install of `typescript@6` and is marked in-scope but
 shorter, so it is the first candidate to trim.
 
