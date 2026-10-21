@@ -1206,6 +1206,7 @@ fail.
 | Check a value | `expect(x).toBe(1)` (same value), `toEqual` (deep), `toMatchObject` (named fields), `expect.objectContaining` |
 | Check an array has an item | `toContainEqual({ ... })` |
 | Check a promise | `await expect(p).rejects.toThrow('text')` |
+| Compare with a stored copy | `expect(x).toMatchSnapshot()`: use sparingly, because a changed snapshot is easy to accept without reading it. Prefer asserting the fields you care about |
 | A fake function or a spy | `jest.fn()`, `jest.spyOn(obj, 'method')` |
 | One request | `request(app).get(url).set(h, v).query(q).send(body)` |
 | A reusable header or cookie jar | `request.agent(app).set(h, v)` |

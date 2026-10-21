@@ -1,6 +1,6 @@
 # M09: backlog
 
-Items found while building and writing up M09 (2026-10-21). The build is `task-api/` in the build repo, branch `feat/module-09/integration-testing`; the documents are in `modules/m09-integration-testing/`. The build repo's work is merged: [PR #9](https://github.com/kiannaalexandra-gragg/node-js-foundation-training/pull/9) (11 commits, CI green) went into `main` as `ed7d65b` on 2026-10-21 at 14:12 UTC. The content repo is **not committed** yet: these documents are in its working tree.
+Items found while building and writing up M09 (2026-10-21). The build is `task-api/` in the build repo, branch `feat/module-09/integration-testing`; the documents are in `modules/m09-integration-testing/`. The build repo's work is merged: [PR #9](https://github.com/kiannaalexandra-gragg/node-js-foundation-training/pull/9) (11 commits, CI green) went into `main` as `ed7d65b` on 2026-10-21 at 14:12 UTC. The documents are committed on `feat/module-09/write-up-and-training-material` of the content repo and submitted as a pull request to `node-js-training-rnd`.
 
 Checks run (all on Node 24.22.0):
 - **The suite:** 88 tests in 9 files (71 integration tests of the API and 17 for the database guards), all passing; `npm run typecheck` exits 0 with `tests/` included. The first version had 71 tests in 8 files.
@@ -16,7 +16,7 @@ Checks run (all on Node 24.22.0):
 - **Resolved: the merge.** PR #9 was merged as `ed7d65b`. The write-up has the merge commit and `git log --graph`, and the `tasks.md` box is ticked. All 28 boxes in `tasks.md` are ticked now.
 - **Resolved: the run on `main`** (run 39614768472) briefly read `in_progress` at the run level although its only job, `Install, generate, type-check, test`, had completed. It is now `completed`, `success`.
 - **The feature branch is still on the remote** (`feat/module-09/integration-testing`). The PR was merged without deleting it. Nothing here deletes it.
-- **The content repo has no commit, branch push or PR yet.** The write-up, the training material, `tasks.md` (all 28 boxes ticked), `coding-standards.md` and the two backlogs are uncommitted on `feat/module-09/write-up-and-training-material`.
+- **The content repo's PR is not merged yet.** The write-up, the training material, `tasks.md` (all 28 boxes ticked), `coding-standards.md` and the two backlogs are committed on `feat/module-09/write-up-and-training-material`. The EM's review is still to come.
 - **Resolved:** green CI (runs 39611518300 at `73a27af` and 39612459807 at `0ccf4ed`, both on `ubuntu-latest` with Node 24.22.0); the `complete` work is three commits (`fc95e0a` red, `e5c2840` green, `2e22647` refactor) and the red state was re-run at its commit (6 of 7 complete tests fail); the M08 comment fix is its own commit (`d5325fc`); the CI job was renamed from `test` to `Install, generate, type-check, test` because the checks list shows one line per job (nothing required the old name: `main` has no branch protection and the repo has no rulesets).
 - **The commits were assembled after the build,** from the finished working tree, in the order the work was done. Their dates show when they were committed, not when each file was written.
 - **Final self-review against `brief.md`:** VALIDATE and a code review were run (see below). The EM's review is still to come.
@@ -36,7 +36,7 @@ Still open after the review:
 - **The guard checks `process.env.DATABASE_URL`, and Prisma keeps the URL it was built with at import.** If a test changed the variable after the import, the two could differ. No test does that, and the guard test shows the check runs first, but a guard that read the URL `db.ts` actually used would be stricter. `db.ts` is not part of this stage.
 - **A run killed with SIGKILL leaves its `test-<pid>-<time>.db` behind.** It is git-ignored. There is no cleanup of old ones.
 - **`kill %1` stopping the Bruno server in an interactive shell was not confirmed** (a non-interactive run has no job control). The guide says to stop the server by its process id otherwise.
-- **The brief's "snapshots used sparingly" and `rejects`/`toThrow` are only a line or nothing in the guide.** Neither is a `tasks.md` task.
+- **The brief's "snapshots used sparingly" and `rejects`/`toThrow` are only a row each in the guide's quick reference, with no stage that uses them.** Neither is a `tasks.md` task.
 - **A stray `task-api/test-review.db`** a reviewer left behind was removed (git-ignored; no other `test-*.db` is left).
 
 ## [BACKLOG] Questions for the EM

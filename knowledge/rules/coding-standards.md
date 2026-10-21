@@ -152,7 +152,8 @@ reaches one central handler. `AppError` subclasses set their own status, a `ZodE
 - Call the exported `app` through a Supertest agent that carries the API key. Do not mock the data layer.
   Mock only at a boundary: `jest.spyOn` on a method of an imported object works in ESM, while `jest.mock`
   under a static import silently does nothing (use `jest.unstable_mockModule` with a dynamic import).
-- Measure coverage on routes, handlers and services with `coverageProvider: 'v8'`, and set
+- Measure coverage on routes, handlers and services (M09 used `coverageProvider: 'v8'`; the default provider
+  was not tried with `@swc/jest`), and set
   `coverageThreshold` so a drop fails the command. A test that passes before its feature exists is not a
   red test: read the failure message, not only the count.
 - The CI workflow lives in `.github/workflows/` at the **root** of the repo (GitHub reads no other place),

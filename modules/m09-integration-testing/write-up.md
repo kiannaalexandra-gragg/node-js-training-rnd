@@ -22,6 +22,7 @@ merge (see Checkpoint evidence).
 
 ```text
 .github/workflows/ci.yml            NEW  npm ci, generate, type-check, test with coverage (repo root)
+.gitignore (repo root)              *.db-journal, *.db-wal and *.db-shm added beside *.db
 task-api/
 ├── jest.config.js                  NEW  ESM, @swc/jest, globalSetup and globalTeardown, coverage scope and threshold
 ├── .env.test.example               NEW  the test settings, fake values (the real .env.test is git-ignored)
@@ -47,7 +48,6 @@ task-api/
 ├── src/services/task-service.ts    complete(); and the M08 comment fix (see below)
 ├── bruno/                          Complete/ (4 requests), Errors/29 and 30
 ├── tsconfig.json                   "tests" added to include, so typecheck covers the tests
-.gitignore (repo root)              *.db-journal, *.db-wal and *.db-shm added beside *.db
 ├── package.json                    jest, @jest/globals, @swc/core, @swc/jest, supertest, @types/supertest; test scripts
 └── README.md                       v4, a Testing section, the badge
 ```
@@ -93,7 +93,7 @@ Three other choices follow from the same idea:
 - **One writer.** SQLite lets one connection write at a time, and the tests write constantly, so the `test`
   script uses `--runInBand` (one process, files one after another). The brief's alternative, one database
   file per worker with `JEST_WORKER_ID`, would be faster and I did not need it: the whole suite runs in
-  about 1.5 seconds without coverage.
+  about 1.4 seconds without coverage.
 - **One database per run, not one shared `test.db`.** My first version used a fixed `test.db`, as the
   architecture document says. A code review found the weakness, and the review itself showed it: two
   reviewers ran Jest at the same time (I had started them in parallel), and the runs on the shared file
@@ -266,7 +266,7 @@ It cannot tell you that the query is wrong, that the migration does not create t
 handler turns into a 404. All five of those were real behaviours in this API, and a mock would have returned
 whatever I told it to. The two tests that exercise Prisma errors (`error-mapping.test.ts`) only mean
 something because the failures are real. The price is speed and setup: a real database needs a migration
-step and a cleanup, which is the guide above, and the suite here still runs in about 1.2 seconds. Mocking is
+step and a cleanup, which is the guide above, and the suite here still runs in about 1.4 seconds. Mocking is
 for the edges I do not control or cannot trigger, like forcing the service to throw so the 500 path can be
 seen, and that is the only spy on application code in the suite (the other `spyOn` calls only silence `console.error`).
 
@@ -371,7 +371,7 @@ All evidence below is from my own runs on Node 24.22.0 in `task-api/`.
   merge commit `ed7d65b`): its one job, `Install, generate, type-check, test`, finished with every step
   successful, and the run's own status is `completed`, conclusion `success`. (A few minutes after the merge the
   API still showed the run as `in_progress` although its only job had finished. It settled by itself.)
-- **Merged into `main`.** [PR #9]({PR}) was merged on 2026-10-21 at 14:12:06 UTC with merge commit `ed7d65b`.
+- **Merged into `main`.** [PR #9](https://github.com/kiannaalexandra-gragg/node-js-foundation-training/pull/9) was merged on 2026-10-21 at 14:12:06 UTC with merge commit `ed7d65b`.
   The history on `main`, from `git log --oneline --graph`:
 
   ```text
