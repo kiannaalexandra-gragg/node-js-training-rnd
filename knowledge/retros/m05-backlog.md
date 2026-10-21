@@ -76,9 +76,11 @@ dependency tree of `@usebruno/cli@4.2.1` (a dev dependency): `axios`, `@faker-js
 Bruno CLI runs only on the developer's machine against `localhost`, so the exposure is small, but a trainer should know the guide's install step will print the warning.
 Options for the EM: accept it as dev-only, pin a newer `@usebruno/cli` once one clears the advisories, or document the Bruno desktop app as the way to run the collection.
 
-## [BACKLOG] The program's rules name the wrong removed `res.json` signature (EM-owned and shared files, not edited)
+## [BACKLOG] The program's rules list only one of the removed `res.json` signatures (shared files, not edited)
 
-`AGENTS.md` (via `coding-standards.md` line 44) and the arch doc's pre-flight checklist (item 9) say Express 5 removed `res.json(status, body)`. The Express 5
-migration guide (read on 2026-10-21) says the removed form is `res.json(obj, status)`, with the status as the **second** argument, and likewise `res.send(body, status)`,
-`res.send(status)` and `app.del()`. M05's training material follows the guide. The three program files above still carry the inverted wording, and the pre-flight check
-that greps lab solutions for it would look for the wrong pattern.
+`coding-standards.md` (line 44), the arch doc's pre-flight checklist (item 9), the PRD (`docs/prd/nodejs-developer-training.md`) and `knowledge/rules/arch-summary.md` name
+`res.json(status, body)` as the removed Express 4 pattern to look for in lab solutions. That form did exist in Express 4 and is gone in Express 5, so the rule is not wrong. It
+is incomplete: the Express 5 migration guide (read on 2026-10-21) also lists `res.json(obj, status)`, with the status as the **second** argument, and likewise
+`res.send(body, status)`, `res.send(status)` and `app.del()`. Express 4's `res.json` accepted both argument orders as deprecated forms. M05's training material follows the guide.
+When the EM updates the pre-flight grep, it should **add** `res.json(obj, status)` to the pattern and keep `res.json(status, body)`, not swap one for the other.
+`AGENTS.md` itself has no `res.json` wording.

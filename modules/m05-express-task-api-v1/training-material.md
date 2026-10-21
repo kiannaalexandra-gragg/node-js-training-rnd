@@ -446,7 +446,7 @@ export const config = loadConfig(process.env);
 - Values are `Number(...)`-checked with `Number.isInteger`. Do not use `Number(x)` alone as validation: `Number(' ')` is `0`.
 - `CORS_ORIGIN=*` means any origin. Otherwise it is a comma-separated allow-list.
 
-Check it, including the failure. The first command should print nothing and exit 0, the second should fail with three
+Check it, including the failure. The first command prints npm's two header lines and then `typecheck exit 0`, and the second should fail with three
 bullets:
 
 ```bash
@@ -1107,7 +1107,8 @@ type ErrorBody = {
 };
 
 // TODO: toAppError(err: unknown): AppError. An AppError passes through, the two body-parser errors are
-// recognised by their `type` property, and anything else becomes the generic 500.
+// recognised by their `type` property, any other client error that carries a 4xx `status` or `statusCode`
+// keeps that status with a fixed message, and anything else becomes the generic 500.
 function toAppError(err: unknown): AppError {
   throw new Error('TODO');
 }
@@ -2453,6 +2454,7 @@ With a limit of 3, the fourth request in the window printed, in the reference bu
 
 ```text
 1 200 ratelimit=limit=3, remaining=2, reset=60 retry-after=null {"ok":true}
+2 200 ratelimit=limit=3, remaining=1, reset=60 retry-after=null {"ok":true}
 3 200 ratelimit=limit=3, remaining=0, reset=60 retry-after=null {"ok":true}
 4 429 ratelimit=limit=3, remaining=0, reset=60 retry-after=60 Too many requests, please try again later.
 ```
