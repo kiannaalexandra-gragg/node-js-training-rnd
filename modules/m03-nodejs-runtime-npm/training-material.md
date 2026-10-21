@@ -2430,3 +2430,17 @@ Tick each one only when you have just verified it.
       helpers, and point to the lines of your own code for each.
 - [ ] Supporting evidence for the first two: `npm run check` prints 27 `ok - ...` lines and exits with `0`,
       and `npm audit` in the stage folder reports `0 vulnerabilities`.
+
+## 7. Next step
+
+If every box in section 6 is ticked, this stage is done, and so is Week 1.
+
+1. Keep the repo and carry the same workflow forward: a branch named `feat/module-NN/<topic>`,
+   Conventional Commits and a pull request. Never push to `main` directly.
+2. Move on to **M04 — TypeScript Basics & TypeScript on Node.js** (Week 2 · Days 1-2). It builds on
+   this stage and on M02: you port your **M02 async toolkit** to TypeScript, so have that file and its
+   checks on hand, and keep Node 24 pinned with `.nvmrc`. Everything from M04 onward is TypeScript, so this
+   was the last stage in plain JavaScript.
+3. Keep your explanation of what Express would remove pain from. **M05 — Express** (Week 2) is where you hand
+   routing, body parsing and error handling to a framework, and your bare `node:http` server is what you
+   will compare it with.
