@@ -83,6 +83,17 @@ reaches one central handler. `AppError` subclasses set their own status, a `ZodE
 - `db.ts` exports one `PrismaClient` singleton built with the driver adapter.
 - The generated Prisma client is git-ignored. Run `prisma generate` after install and after every
   schema change.
+- In Prisma 7.10, `migrate dev` does not run `generate`, and `migrate reset` does not run the seed. Run
+  `prisma generate` and `prisma db seed` explicitly, and say so in any stage that depends on them.
+- A SQLite `enum` is plain `TEXT` with no `CHECK`, so Prisma and validation enforce it and the database
+  does not.
+- `prisma studio` on SQLite needs a URL with `://` (`--url file://./dev.db`): it reads everything before
+  `://` as the protocol, so the `file:./dev.db` form is rejected.
+- `migrate status` does not notice an applied migration that was edited afterwards; `migrate dev` does.
+- A date from a client is not valid just because `new Date(text)` is not `Invalid Date`: JavaScript rolls
+  `2026-02-30` over to 2 March. Check the day against the calendar too, and test impossible dates.
+- Install `better-sqlite3` at the major version the Prisma adapter declares (`@12`), or npm installs a
+  second copy beside the adapter's own.
 
 ## Testing
 
