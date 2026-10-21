@@ -95,8 +95,9 @@ reaches one central handler. `AppError` subclasses set their own status, a `ZodE
   that writes to a database, never keep them. State which one a schema uses, and why.
 - `z.coerce.number()` is `Number(input)`: it accepts `"1e2"`, `" 5"` and `"0x10"`, and turns `""` and `null`
   into `0`. For a query string, check the digits (`z.string().regex(/^\d+$/)`), then `.transform(Number)`,
-  then `z.int()`. `.pipe(z.coerce.number())` after a string schema does not type-check, because a coerced
-  number's input type is `unknown`.
+  then `z.int()`. A pipe from a string schema into a constrained coerced number
+  (`.pipe(z.coerce.number().pipe(z.int()))` or `.pipe(z.coerce.number().int())`) does not type-check, because a
+  coerced number's input type is `unknown`. A plain `.pipe(z.coerce.number())` does compile.
 - `z.uuid()` checks the version and variant digits and `z.guid()` does not. Switching from a hand-written
   8-4-4-4-12 check to `z.uuid()` turns some ids that were a 404 into a 400.
 - `z.iso.datetime({ offset: true })` needs seconds: add a member with `precision: -1` for a time that stops at

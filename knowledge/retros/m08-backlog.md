@@ -26,7 +26,7 @@ Both reviewers were read-only. The build reviewer found no regression versus v2 
 - **Build, lower-bound year with an offset:** `0000-01-01T00:00:00+23:59` is accepted and sent back as `-000001-12-31T00:01:00.000Z`. The README promised four digits. The same overflow exists at the top end in v2 (`9999-12-31T23:59:59-23:59`). Runtime behaviour was not changed: the README now says the four-digit limit is on the text sent, not on the stored instant (see Decisions below).
 - **Content, Stage 10 never committed the Bruno requests that Stage 9 requires.** Added a `test(m08)` commit and listed `bruno/` in the expected `git status`.
 - **Content, `satisfies` was overclaimed.** Tested with `tsc`: it catches a wrong type on a shared field and a required Prisma field the schema stopped producing, but not an extra field Prisma has no column for (excess properties are not checked on a spread) and not a rename in the update input (all fields optional). The guide's Stage 7 and Concepts, the write-up and `coding-standards.md` now say exactly that.
-- **Content, Stage 7's deletion list was incomplete** (`SortField` and `SortOrder` aliases, and the `TaskStatus` value import that `verbatimModuleSyntax` rejects). Stage 7 now shows the full reference `types/task.ts` and the service's import block, and both were checked against the real files.
+- **Content, Stage 7's deletion list was incomplete** (`SortField` and `SortOrder` aliases, and the `TaskStatus` import, which can become `import type`: the guide first said `verbatimModuleSyntax` rejects the value import, and the second review found that false, since it compiles). Stage 7 now shows the full reference `types/task.ts` and the service's import block, and both were checked against the real files.
 - **Content, Concepts restated stage walkthroughs.** Two sections were rewritten down to what the path does not say (where a custom message lives on a union, and that tightening a rule changes the contract even when messages match).
 - **Content, several Done-when items did not trace to the brief.** Every stage now opens with a "Traces to the brief" line, and the checks that come from this guide's own process are labelled "(process check, not in the brief)". Section 6 keeps only brief items, with the process checks listed after it.
 - **Content, the RFC 3339 citation** pointed at an errata page that quotes the old grammar (`00-24`). It now cites RFC 3339 section 5.6 (`time-hour = 2DIGIT ; 00-23`) and section 5.7 (the sentence on hour 24), both read.
@@ -36,9 +36,22 @@ Both reviewers were read-only. The build reviewer found no regression versus v2 
 
 Dropped by the reviewers (not defects): `instanceof ZodError` would map a future server-side `schema.parse()` failure to a 400, but no such call exists; `Dates/` leaves a task behind only on an interrupted or `--bail` run (already below); the three `{ title: undefined }` differences are unreachable from JSON.
 
+## Second review (pre-PR, content repo only)
+
+No critical and no high finding. Fixed before the PR:
+
+- **A false claim, also in `coding-standards.md`:** the guide said `.pipe(z.coerce.number())` after a string schema does not type-check. It does compile (tsc 7.0.2, Zod 4.6.7). Only a pipe into a *constrained* coerced number (`.pipe(z.coerce.number().pipe(z.int()))`, `.pipe(z.coerce.number().int())`) fails, and the quoted error belongs to the first of those. The guide's Stage 3 and Pitfalls, the write-up and the standards now name the failing form. The advice (digits, then `.transform(Number)`, then `z.int()`) is unchanged.
+- **Stage 9 left the learner with a stopped server.** Step 3 ends with `pkill`, and steps 5 and 6 then use a running server and the `$K` and `$B` variables. Step 5 now restarts the server in the same terminal, step 6 stops it, and the `pkill` step warns that it stops every matching process.
+- **The `verbatimModuleSyntax` reason for `import type { TaskStatus }` was false** (the value import compiles). It is now described as a tidy-up.
+- **Stage 4's and Stage 5's Done-when items lacked the process label** (or the brief tie): added.
+- **The write-up's printed `grep` lacked `--exclude-dir=generated`**, so it did not print the stated result. Added.
+- **The year claim "ISO 8601's year has four digits" was stated flatly although the standard was never read.** It now cites RFC 3339 section 5.6 (`date-fullyear = 4DIGIT`, read directly) and says the ISO text was not read.
+- **This file said the content repo was not committed**; it now says what is true.
+
 ## [BACKLOG] Not fixed
 
 - **`Dates/` leaves a task behind if a run stops part-way.** Its requests share one task made by `Dates/01` and deleted by `Dates/07`. `Listing/` has the same shape. A failed run leaves a "Date boundaries" task in `dev.db`; `db:reset` and `db:seed` clean it (the seed is an upsert and does not delete it, so only `db:reset` does).
+- **A comment in the merged build still overclaims.** `src/services/task-service.ts` says "if a schema ever produces a field or a type that Prisma cannot store, this line stops compiling". It does not for an extra field (see the `satisfies` limits). The matching comment in `task.schemas.ts` was fixed, this one was missed, and it is already merged in PR #8. Fixing it needs a small follow-up commit in the build repo.
 - **A handler mounted without `validate` still compiles.** `validOf` makes it fail loudly at runtime (a 500 and a clear log line), and there is no Bruno request for it because no real route is mounted that way.
 - **The UTC instant is not range-checked.** See Decisions.
 - **The request-ID middleware still validates `X-Request-Id` with a hand-written regex.** The brief's scope is body, params, query and the environment, so it was left. The grep in the brief's "no manual checks" criterion still lists it.
@@ -71,10 +84,10 @@ Dropped by the reviewers (not defects): `instanceof ZodError` would map a future
 - **The Bruno collection grew from 36 to 47 requests** (`Errors/25` to `28`, a `Dates/` folder of 7). The original 36 are unchanged. The M07 Definition of done said the M05 collection stays green; nothing in M08's brief limits adding to it.
 - **The URL prefix stays `/api/v1`**, as in M07.
 - **Unknown body keys are stripped**, not rejected, and v2's messages are kept through the `error` option.
-- **The guide's Stage 4 (the v2 against v3 comparison) is not a brief task.** It is traced to the Definition of done ("a Zod schema rejects it first, every time") and labelled as the guide's own method. Stages 1, 8, 9 and 10 each contain items labelled "process check, not in the brief".
+- **The guide's Stage 4 (the v2 against v3 comparison) is not a brief task.** It is traced to the Definition of done ("a Zod schema rejects it first, every time") and labelled as the guide's own method. Stages 1, 4, 5, 7, 8, 9 and 10 each contain items labelled "process check, not in the brief".
 
 ## [BACKLOG] Status of the PRs and the checkpoint
 
 - **Build repo:** committed as six Conventional Commits (no `Co-Authored-By` trailer) on `feat/module-08/zod-validation`, pushed, and opened as [PR #8](https://github.com/kiannaalexandra-gragg/node-js-foundation-training/pull/8) against the owner's own repo. It was MERGED by the owner on 2026-10-21 at 11:40 UTC (merge commit `4deec36`; 29 files, +766 −423). A clean clone of merged `main` passed the README flow: typecheck 0, `check:errors` 3 `PASS`, Bruno 47/47 requests, tests 63/63, assertions 91/91, `Server closed` on SIGTERM, no `src/validation/` and no hand-written parse functions left.
-- **Content repo:** NOT yet committed. `write-up.md` and `training-material.md` are new, `tasks.md` and `knowledge/rules/coding-standards.md` are modified, and this file is new, all on `feat/module-08/write-up-and-training-material`. The pre-PR review is done (see the code review section), and the PR is opened after the commits.
+- **Content repo:** committed on `feat/module-08/write-up-and-training-material` (four commits for the documents, tasks, backlog and rules, then a "fix per pre-PR review" commit) and opened as a PR against `main` of `kiannaalexandra-gragg/node-js-training-rnd`. `write-up.md` and `training-material.md` are new, `tasks.md` and `knowledge/rules/coding-standards.md` are modified, and this file is new.
 - **`write-up.md` has no `GAP:` left.** Its Checkpoint evidence has the PR #8 link, the `git log --graph` of `main` after the merge, and the table of checks re-run on a clean clone of `main`. As in M05 to M07, the author's PR link belongs in `write-up.md` only, not in the training material. The trainer's own checkpoint check is not recorded here, as in M06 and M07.

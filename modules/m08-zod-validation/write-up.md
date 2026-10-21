@@ -223,8 +223,8 @@ neither difference is v2 behaviour that the contract promises, and I decided eac
   `T24:00:00Z` now gets a 400, and that is written down.
 - **Years 0000 to 0099 stay accepted.** The contract says the day must exist, and `0050-06-15` does. v2
   rejected it only because its calendar check used `Date.UTC(0050, ...)`, which treats 0 to 99 as 1900 to
-  1999, so it compared against the wrong year. That is a bug, not a rule. ISO 8601's four-digit year is
-  `0000` to `9999`, and the README now says that. I checked the storage side too: Bruno `Dates/02` sets
+  1999, so it compared against the wrong year. That is a bug, not a rule. RFC 3339 (section 5.6, `date-fullyear = 4DIGIT`) gives
+  a four-digit year, `0000` to `9999`, and the README now says that. I did not read ISO 8601's own text. I checked the storage side too: Bruno `Dates/02` sets
   `0050-06-15` and `Dates/03` reads it back from SQLite as `0050-06-15T00:00:00.000Z`.
 
 A wider boundary comparison against v2 (leap years 1900, 2000, 2024 and 2100, every month end, years
@@ -418,10 +418,12 @@ further.
   NODE_MODULE_VERSION 127". My shell was on Node 22.23.0, and the repo pins 24 in `.nvmrc`. Putting Node
   24.22.0 first on `PATH` and rerunning gave 36 of 36. If I had not run the baseline first, I would have
   blamed the 500s on my own changes.
-- **`z.coerce.number()` does not pipe from a string.** Piping a string schema into `z.coerce.number().pipe(...)`
-  was a type error: `Argument of type 'ZodPipe<ZodCoercedNumber<unknown>, ZodInt>' is not assignable to
-  parameter of type '$ZodType<any, string, ...>'`, because a coerced number's input type is `unknown`, not
-  `string`. After the digits check, `.transform(Number)` does the same job and types correctly.
+- **A constrained `z.coerce.number()` does not pipe from a string.** Piping a string schema into
+  `z.coerce.number().pipe(...)` was a type error: `Argument of type 'ZodPipe<ZodCoercedNumber<unknown>,
+  ZodInt>' is not assignable to parameter of type '$ZodType<any, string, ...>'`, because a coerced number's
+  input type is `unknown`, not `string`. (A plain `z.string().pipe(z.coerce.number())` compiles, which a
+  reviewer and I confirmed with tsc; it is the further constraint that fails.) After the digits check,
+  `.transform(Number)` does the same job and types correctly.
 - **`z.coerce.number()` is looser than it looks.** See the decision above: `"1e2"`, `" 5"` and `"0x10"` all
   parse. I only found it because I compared against the old function instead of reading the Zod docs and
   assuming.
@@ -472,7 +474,8 @@ first, and the PR was opened from it.
 - The input types are defined only by `z.output` on a schema:
   `grep -rnE "(type|const) (CreateTaskInput|UpdateTaskInput|ListTasksQuery)" src` returns three lines, all
   in `src/schemas/task.schemas.ts`, each `export type X = z.output<typeof ...>`, and `grep -rnE "interface |isTaskStatus|parseCreateTask|parseUpdateTask|parseTaskId|parseListQuery" src
-  prisma scripts` (generated client excluded) finds nothing.
+  prisma scripts --exclude-dir=generated` finds nothing (without the exclusion it also lists the generated
+  client).
 - The throwaway rename (`title` to `name` in `createTaskBody`) made `tsc` fail in the service:
   `src/services/task-service.ts(63,49): error TS2741: Property 'title' is missing in type '{ name: string; ... userId: number; }' but required in type 'TaskUncheckedCreateInput'`. I reverted it, and `typecheck` exits 0 again.
 - The compiler also confirmed `z.input` against `z.output` on a scratch file (since deleted): `page: '2'` is

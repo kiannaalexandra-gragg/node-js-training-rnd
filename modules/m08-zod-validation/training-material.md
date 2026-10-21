@@ -539,8 +539,9 @@ Build it in pieces. The final file is at the end of this stage.
    `z.coerce.number().int().min(1)`: Stage 2 showed that `z.coerce.number()` reads `"1e2"` as 100 and `""` as
    0. A query string of `?page=1e2` is a typo, and your M05 validator rejected it. The digits check says
    "only digits", and then the number check does the range. Why `.transform(Number)` and not
-   `z.coerce.number()` after the regex: a coerced number's input type is `unknown`, and `.pipe` from a string
-   will not type-check (Pitfalls shows the error).
+   `z.coerce.number()` after the regex: the digits check has already settled what is allowed, and a coerced
+   number's input type is `unknown`, which makes a pipe into a *constrained* coerced number a type error
+   (Pitfalls shows it).
 
    A key that appears twice (`?status=a&status=b`) arrives as an array, and an array is not a string or an
    enum value, so it fails the schema. `.default()` fills in a missing key, and the **output** has a value for
@@ -753,8 +754,8 @@ covers the inputs you thought of, and a schema can differ on the ones you did no
      the *next day*, a surprising result for a due date. The README now says "the hour is 00 to 23". A client
      that sent hour 24 gets a 400, and the README says that too.
    - **Years 0000 to 0099 are accepted.** The contract says the day must exist, and `0050-06-15` does. The old
-     validator refused it by accident (the `Date.UTC` reading above). ISO 8601's year has four digits,
-     `0000` to `9999`, and the README now says so.
+     validator refused it by accident (the `Date.UTC` reading above). RFC 3339 (section 5.6, `date-fullyear = 4DIGIT`)
+     gives a four-digit year, `0000` to `9999`, and the README now says so. (ISO 8601's own text was not read.)
 
    One boundary the date schemas do **not** settle: a zone offset moves the instant, so a date at the edge of
    the year range can leave it. In the reference build `0000-01-01T00:00:00+23:59` was accepted and sent back as
@@ -771,11 +772,12 @@ covers the inputs you thought of, and a schema can differ on the ones you did no
 
 **Done when:**
 
-- [ ] `npx tsx scratch/compare.ts` runs and prints a `cases, N differences` line.
+- [ ] `npx tsx scratch/compare.ts` runs and prints a `cases, N differences` line (process check, not in the
+      brief).
 - [ ] Every `DIFF` is either fixed in the schema or decided against your documented contract and written down
-      with a reason.
+      with a reason (process check, not in the brief).
 - [ ] You can explain why `z.guid()` and the digits-then-number check were chosen over `z.uuid()` and
-      `z.coerce.number()`.
+      `z.coerce.number()` (the brief's scope: string formats, and `z.coerce.number()` for query strings).
 
 ### Stage 5 — The typed `validate` middleware
 
@@ -882,7 +884,8 @@ read-only) and the scope's "Zod + Express" item.
 - [ ] The throwaway file compiled with the typo line refused, and you deleted it (process check, not in the
       brief).
 - [ ] You can explain why the parsed query is on `res.locals` and not on `req.query`.
-- [ ] You can explain why a request with a bad id and a bad body reports only the id.
+- [ ] You can explain why a request with a bad id and a bad body reports only the id (process check, not in
+      the brief: it keeps v2's behaviour).
 
 ### Stage 6 — Map `ZodError` into the M05 envelope
 
@@ -1040,10 +1043,10 @@ Prisma" item (never pass raw `req.body` to Prisma) and the deliverable's "handle
 3. **The types and the service.** Reduce `types/task.ts` to what is not derived from a schema. The input
    types, the constants and the `SortField` and `SortOrder` aliases now live in
    `src/schemas/task.schemas.ts`, so delete them here along with `isTaskStatus` and `TASK_STATUSES`. Keep
-   the Prisma-derived `Task` and the page types. Two details compile only one way: the `TaskStatus` import
-   becomes `import type`, because nothing here uses it as a value any more (`verbatimModuleSyntax` rejects a
-   value import that is only re-exported as a type), and `export type { TaskStatus }` stays if your seed script
-   imports it from here. The reference result:
+   the Prisma-derived `Task` and the page types. Two details: the `TaskStatus` import
+   becomes `import type`, because nothing here uses it as a value any more (the value import compiles too, so
+   this is a tidy-up that keeps the file type-only, not a requirement), and `export type { TaskStatus }` stays
+   if your seed script imports it from here. The reference result:
 
    ```ts
    import type { Task as TaskRow } from '../generated/prisma/client.ts';
@@ -1377,7 +1380,9 @@ The id and date-boundary requests are this guide's own process.
 
    Now clean up, **by the exact id of the task you made** and never by a search: a search such as `?q=` can match
    seeded tasks (a search for `proto` matches "Prototype the tag filter"). Take the id from the response, delete
-   that one task, and stop the server:
+   that one task, and stop the server. (`pkill -f` stops every process whose command line contains
+   `src/server.ts`, including a copy you run in another terminal. See what it would match first with
+   `pgrep -fl src/server.ts`.)
 
    ```bash
    ID=$(echo "$RESPONSE" | sed -E 's/.*"id":"([^"]+)".*/\1/')
@@ -1402,7 +1407,13 @@ The id and date-boundary requests are this guide's own process.
    `{ "path": "body", "message": "At least one of ..." }`.
 
 5. **Check the id boundary, and pin your decisions in Bruno.** A malformed id must be a 400 and an id with the
-   right shape but no task must be a 404. Check both against the running server:
+   right shape but no task must be a 404. The cleanup in step 3 stopped the server, so start it again **in the
+   same terminal** (so `$K` and `$B` are still set), and check both:
+
+   ```bash
+   npm start > /tmp/m08-server.log 2>&1 &
+   sleep 4
+   ```
 
    ```bash
    for id in not-a-uuid 123 11111111-1111-1111-1111-111111111111 12345678-1234-1234-1234-123456789012 AAAAAAAA-AAAA-4AAA-8AAA-AAAAAAAAAAAA; do
@@ -1482,7 +1493,8 @@ The id and date-boundary requests are this guide's own process.
    Both must pass. The Bruno counts are the ones from Stage 1 plus the requests you added in step 5: the
    reference build went from 36 requests, 49 tests and 76 assertions to **47 requests, 63 tests and 91
    assertions**, and the original 36 were untouched. Check the server's log for `unexpected error` (there must
-   be none).
+   be none: `grep -c "unexpected error" /tmp/m08-server.log` prints `0`). The server from step 5 is still
+   running for this. Stop it when you are done, with `pkill -f "src/server.ts"`.
 
 **Done when:**
 
@@ -1668,10 +1680,12 @@ These come up in practice and you do not use them here.
   In Zod 4 use `z.email()`, `z.uuid()` and the `error` option, and read the documentation for version 4.
 - **`z.coerce.number()` on a query string.** It accepts `"1e2"`, `" 5"`, `"0x10"` and `"1.0"`, and turns `""`
   and `null` into `0`. Check the digits first.
-- **Piping a string into `z.coerce.number()`.** `.pipe(z.coerce.number())` after `z.string()` fails to compile:
-  `Argument of type 'ZodPipe<ZodCoercedNumber<unknown>, ZodInt>' is not assignable to parameter of type
-  '$ZodType<any, string, ...>'`. A coerced number's input is `unknown`, not `string`. After a digits check,
-  `.transform(Number)` does the job.
+- **Piping a string into a constrained `z.coerce.number()`.** A plain `.pipe(z.coerce.number())` after
+  `z.string()` compiles, but `.pipe(z.coerce.number().pipe(z.int()))` does not (nor does
+  `.pipe(z.coerce.number().int())`). The first form fails with `Argument of type
+  'ZodPipe<ZodCoercedNumber<unknown>, ZodInt>' is not assignable to parameter of type '$ZodType<any, string,
+  ...>'`: a coerced number's input is `unknown`, not `string`. After a digits check, `.transform(Number)` then
+  `.pipe(z.int())` compiles and does the job.
 - **`z.uuid()` rejecting ids your API handed out in the past.** It checks the version and variant digits. If
   your M05 validator accepted any hex shape, `z.guid()` keeps the behaviour, and `z.uuid()` turns some 404s into
   400s.
