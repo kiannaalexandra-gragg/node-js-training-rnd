@@ -44,6 +44,16 @@ Free tools only. No Docker, no paid licences. If content mentions a version, it 
 - Do not teach removed Express 4 patterns: wildcard paths such as `*`, and `res.json(status, body)`.
   Use `res.status(n).json(body)`.
 - Middleware order matters and must be explainable. State what breaks if two middleware swap.
+- The central error handler has four parameters and is registered last. With three, or registered
+  before the routes, Express's built-in handler answers instead: an HTML page with a stack trace
+  when `NODE_ENV` is `development`. Prove an order claim by swapping the lines and running it.
+  Swapping the logger and the request-ID middleware changes nothing, because the logger reads the
+  id on `finish`. Check the cheap rejection before the expensive step: the API-key check comes
+  before `express.json()`.
+- Never put a stack or `err.message` of an unexpected error in a response. Map it to a generic 500
+  and log the detail with the request id. A client error that a library marks with a 4xx `status`
+  or `statusCode` keeps that status, with a fixed message. Check the error `app.listen`'s callback
+  receives, and exit 1 on it.
 
 ## Errors
 
@@ -60,7 +70,7 @@ Every error response from every endpoint uses the fixed envelope defined in M05'
 }
 ```
 
-`details` appears only on validation errors. No stack traces in production responses. Every error
+`details` appears only on validation errors. No stack traces in production responses (M05 sends none in any environment). Every error
 reaches one central handler. `AppError` subclasses set their own status, a `ZodError` becomes a
 400 with field-level `details`, and Prisma `P2002`, `P2025` and `P2003` map to 409, 404 and 409/400.
 
@@ -90,3 +100,6 @@ reaches one central handler. `AppError` subclasses set their own status, a `ZodE
   `git check-ignore -v <real path>`, not a file at the repo root.
 - Commit `.env.example`. Never commit `.env` or `.env.test`. Never put a real secret in an example.
 - Conventional Commits for every commit.
+- Proposed, pending EM confirmation (see `knowledge/retros/m05-backlog.md`): the Task API is one
+  project, `task-api/` at the build repo's root, shared by M05, M07, M08 and M09, and each stage is a
+  PR that changes it in place. Other stages live in `modules/mNN-<name>/`.
