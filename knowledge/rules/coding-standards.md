@@ -80,6 +80,42 @@ reaches one central handler. `AppError` subclasses set their own status, a `ZodE
   reaches Prisma.
 - Handler input types come from `z.infer`, not hand-written duplicates.
 - Validate environment variables once at startup in `config.ts` and fail fast.
+- Keep the settings a script needs (`DATABASE_URL`) out of `config.ts`. It validates the whole environment
+  when it is imported, so a seed script that imported it would need `API_KEY` too. Put them in a module with
+  no import-time effect, as `env.ts` does.
+- Zod 4 is not Zod 3: use `z.email()`, `z.uuid()`, `z.url()`, the `error` option for messages, and
+  `z.flattenError`. Read the version 4 documentation.
+- Do not assign parsed request data back to `req.query`: it is read-only in Express 5. Put it on `res.locals`
+  (or a typed `req.valid`, which needs a global Express type merge) and state which one the project uses.
+  Derive the handler's type from the same schema object the route passes to `validate`, with `z.output`.
+  The compiler cannot tell whether a route has `validate` in front of a handler, so read the parsed data
+  through a helper that throws when it is missing, and make `validate` refuse keys other than `params`,
+  `body` and `query` at compile time.
+- A `z.object` strips unknown keys, `z.strictObject` rejects them, and `z.looseObject` keeps them. For an API
+  that writes to a database, never keep them. State which one a schema uses, and why.
+- `z.coerce.number()` is `Number(input)`: it accepts `"1e2"`, `" 5"` and `"0x10"`, and turns `""` and `null`
+  into `0`. For a query string, check the digits (`z.string().regex(/^\d+$/)`), then `.transform(Number)`,
+  then `z.int()`. `.pipe(z.coerce.number())` after a string schema does not type-check, because a coerced
+  number's input type is `unknown`.
+- `z.uuid()` checks the version and variant digits and `z.guid()` does not. Switching from a hand-written
+  8-4-4-4-12 check to `z.uuid()` turns some ids that were a 404 into a 400.
+- `z.iso.datetime({ offset: true })` needs seconds: add a member with `precision: -1` for a time that stops at
+  the minute. `z.iso.datetime` also rejects hour 24, and `z.iso.date()` checks the day against the calendar
+  (`2026-02-30` fails), so no hand-written calendar check is needed. A zone offset can still move a date at the
+  edge of the year range outside it, so say in the README whether the limit is on the text or on the instant.
+- State a date input's accepted forms and range in the README, decide each boundary against that contract
+  instead of against the old code, and pin it with a Bruno request. A boundary the old code got right by
+  accident or wrong by accident is not part of the contract.
+- One field can produce more than one Zod issue (`priority: 1e300` fails both `z.int()` and `.max(3)`). Map
+  `error.issues` to one `details` entry per path, the first message winning, and give an issue with an empty
+  path the path `body`.
+- `satisfies Prisma.<Input>` on a schema's output catches a wrong type on a shared field and a required Prisma
+  field the schema stopped producing. It does not catch an extra field Prisma has no column for (excess
+  properties are only checked on a fresh object literal), and it cannot catch a rename in an update input,
+  where every field is optional. Do not describe it as proof that the two contracts match.
+- When replacing hand-written validation with a schema, run both on the same inputs before deleting the old
+  code. Matching messages does not mean matching behaviour, and Bruno only covers the inputs someone wrote a
+  request for.
 - `db.ts` exports one `PrismaClient` singleton built with the driver adapter.
 - The generated Prisma client is git-ignored. Run `prisma generate` after install and after every
   schema change.
