@@ -1105,9 +1105,9 @@ npm install -D @types/better-sqlite3 @types/node@24 tsx typescript@7
 mkdir src
 ```
 
-In the reference build `npm install` printed a warning that two packages have install scripts not covered
-by `allowScripts` (`better-sqlite3` and `esbuild`). Nothing was approved, and `better-sqlite3` still loaded
-and ran. If `better-sqlite3` cannot load on your machine, that is a real problem to solve before
+In the reference build `npm install` printed a warning that packages have install scripts not covered by
+`allowScripts`: `better-sqlite3` and `esbuild`, and on macOS a clean `npm ci` also lists `fsevents`, so you may
+see two or three. Nothing was approved, and `better-sqlite3` still loaded and ran. If `better-sqlite3` cannot load on your machine, that is a real problem to solve before
 continuing, because it needs a native binary.
 
 #### Step 2 — Open the database
